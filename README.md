@@ -4,10 +4,11 @@
 
 플라스크를 활용한 스크랩북 프로젝트입니다.
 
-사용한 모듈
+## 사용한 모듈
 
 - flask
 - flask_cors
 - flask_sqlalchemy
 - sqlalchemy
 - flask_migrate
+- flask_restx
