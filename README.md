@@ -8,3 +8,6 @@
 
 - flask
 - flask_cors
+- flask_sqlalchemy
+- sqlalchemy
+- flask_migrate
