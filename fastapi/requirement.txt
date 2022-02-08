@@ -1,0 +1,4 @@
+fastapi
+email-validator
+python-multipart
+alembic

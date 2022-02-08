@@ -12,3 +12,14 @@
 - sqlalchemy
 - flask_migrate
 - flask_restx
+
+#### 유의사항
+
+1. 가상환경을 사용해야하므로 가상환경을 설치할 것
+
+- (가장 바깥 directory에서)
+- python3 -m venv venv
+- source goVenv.sh
+- pip install -r requirement.txt
+
+2. alembic db migration 시 반드시 src directory에서 실행할 것
