@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from src.sql.database import get_db
-from src.sql.schemas.user import UserIn
+from .schemas import UserIn
 from src.sql.models import User
 
 rt = APIRouter(prefix='/auth')
