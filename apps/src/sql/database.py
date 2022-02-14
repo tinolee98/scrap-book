@@ -14,7 +14,6 @@ else:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-from sql.models import User, Scrap, Scrapbook, Book, scrapbook_users
 
 Base = declarative_base()
 

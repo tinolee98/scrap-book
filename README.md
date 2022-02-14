@@ -25,3 +25,8 @@ pip install -r requirement.txt
 ```
 
 2. alembic db migration 시 반드시 src directory에서 실행할 것
+
+```linux
+alembic revision --autogenerate -m "커밋 이름"
+alembic upgrade head
+```
