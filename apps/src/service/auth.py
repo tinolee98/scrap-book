@@ -1,3 +1,4 @@
+import bcrypt
 import jwt
 import datetime
 import json
@@ -5,6 +6,7 @@ from fastapi import status, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from src.routes.apis.v1.auth.schemas import UserIn
 from src.sql.models import User
 
 from src.routes.apis.v1.auth.schemas import Token
@@ -27,6 +29,7 @@ class AuthService:
     def create_refresh_token(db: Session, id: int):
         token = jwt.encode({"id": id}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         db.query(User).filter(User.id == id).update({User.refreshToken: token})
+        db.commit()
         accessAndExp = AuthService.create_access_token(id)
         return {
                 **accessAndExp,
@@ -50,7 +53,23 @@ class AuthService:
     def verify_refresh_token(db: Session, token: Token):
         try:
             id = jwt.decode(token["accessToken"], Config.ACCESS_TOKEN_KEY,algorithms=Config.JWT_ALGORITHM)
-            userRefreshToken = db.query(User).filter(User)
+            user = db.query(User).filter(User.id == id).first()
+            print(token["refreshToken"])
+            if token["refreshToken"] == user.refreshToken:
+                print("ok")
         except:
             return False
         return id
+    
+    @staticmethod
+    def create_user(db:Session, user: UserIn):
+        try:    
+            hashedPW = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+            print(hashedPW)
+            db_user = User(email=user.email, password=hashedPW)
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            return user
+        except:
+            return False
