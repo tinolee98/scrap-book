@@ -29,6 +29,25 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True))
         print(json_user_db)
         return JSONResponse(content={"user": json_user_db})
 
+@rt.post('/login')
+def login(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
+    user_db = UserService.get_user_by_email(db, user.email)
+    if not user_db:
+        return JSONResponse(content={
+            "message": "user not existed",
+            "ok": False
+        })
+    user_json = jsonable_encoder(user_db)
+    headers = AuthService.create_access_token(user_db.id)
+    token = AuthService.create_refresh_token(db, user_db.id)
+    if not token:
+        return {"fail": "fail"}
+    response = JSONResponse(content={**user_json, "refreshToken":token},
+    headers=headers)
+    response.set_cookie('token', token, httponly=True)
+    return response
+    
+
 @rt.get('/{id}')
 def search(db:Session = Depends(get_db), id: int = 1):
     db_user = db.query(User).filter(User.id == id).first()

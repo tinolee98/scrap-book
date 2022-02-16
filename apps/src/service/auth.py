@@ -1,9 +1,9 @@
 import bcrypt
 import jwt
+from jwt import DecodeError
 import datetime
 import json
 from fastapi import status, HTTPException
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from src.routes.apis.v1.auth.schemas import UserIn
@@ -18,7 +18,7 @@ class AuthService:
     @staticmethod
     def create_access_token(id: int):
         token = jwt.encode({"id":id},Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
-        exp = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        exp = str(round( (datetime.datetime.now() + datetime.timedelta(minutes=30)).timestamp()))
         # exp = datetime.datetime.now()
         return {
             "accessToken": token,
@@ -30,11 +30,7 @@ class AuthService:
         token = jwt.encode({"id": id}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         db.query(User).filter(User.id == id).update({User.refreshToken: token})
         db.commit()
-        accessAndExp = AuthService.create_access_token(id)
-        return {
-                **accessAndExp,
-                "refreshToken": token,
-        }
+        return token
 
     @staticmethod
     def verify_access_token(token: Token):
@@ -73,3 +69,4 @@ class AuthService:
             return user
         except:
             return False
+
