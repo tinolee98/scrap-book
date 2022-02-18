@@ -15,6 +15,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     email = Column(String(120), nullable=False)
     password = Column(String(120), nullable=False)
+    refreshToken = Column(String(120))
     # scrapbooks
     # scraps
 
