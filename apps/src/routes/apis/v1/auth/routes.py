@@ -34,7 +34,7 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True))
         return JSONResponse(content={"user": json_user_db})
 
 @rt.post('/login')
-def login(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
+def log_in(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
     user_db = UserService.get_user_by_email(db, user.email)
     if not user_db:
         return JSONResponse(content={
@@ -49,6 +49,14 @@ def login(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
     response = JSONResponse(content={**user_json, "refreshToken":token}, headers=headers)
     response.set_cookie('token', token, httponly=True)
     return response
+
+@rt.get('/logOut')
+def log_out():
+    response = JSONResponse(content={"ok": True})
+    response.set_cookie('token', '', httponly=True)
+    return response
+
+
     
 
 @rt.get('/{id}')
