@@ -28,10 +28,8 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True))
             }, status_code=status.HTTP_200_OK)
 
     user_db = UserService.create_user(db, user)
-    if user_db:
-        json_user_db = jsonable_encoder(user_db)
-        print(json_user_db)
-        return JSONResponse(content={"user": json_user_db})
+    json_user_db = jsonable_encoder(user_db)
+    return JSONResponse(content={"user": json_user_db})
 
 @rt.post('/login')
 def log_in(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):

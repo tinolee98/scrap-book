@@ -31,7 +31,11 @@ class UserService:
 
     @staticmethod
     def create_access_token(refreshToken: str):
-        token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+        try:
+            token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+        except jwt.DecodeError as e:
+            print(e)
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "invalid refresh token", "ok": False})
         token = jwt.encode(token_id,Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         exp = str(round( (datetime.datetime.now() + datetime.timedelta(minutes=30)).timestamp()))
         return {
