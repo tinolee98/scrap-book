@@ -23,6 +23,13 @@ class UserService:
         return db.query(User).filter(User.email == email).first()
     
     @staticmethod
+    def compare_token(db:Session, token: str, id: int):
+        user = UserService.get_user_by_id(db, id)
+        if user.refreshToken == token:
+            return True
+        return False
+
+    @staticmethod
     def create_access_token(refreshToken: str):
         token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
         token = jwt.encode(token_id,Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)

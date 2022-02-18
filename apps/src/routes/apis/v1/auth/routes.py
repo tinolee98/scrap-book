@@ -1,8 +1,12 @@
-import datetime
-from fastapi import APIRouter, Body, Depends, status
+import jwt
+
+from fastapi import APIRouter, Body, Depends, status, Header
+from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+
+from src.config import Config
 from src.common.response import verify_token
 from src.service.user import UserService
 from src.sql.database import get_db
@@ -58,3 +62,19 @@ def search(db:Session = Depends(get_db), id: int = 1):
 @rt.delete('/delete')
 def delete(db:Session = Depends(get_db), user: User = Depends(verify_token)):
     return UserService.delete_user(db, user.id)
+
+@rt.post('/refresh')
+def refresh(db:Session = Depends(get_db), request: Request = None, accessToken:str = Header(...)):
+    refreshToken = request.cookies.get('token')
+    try: 
+        jwt.decode(accessToken, Config.ACCESS_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+        token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+    except jwt.DecodeError as e:
+        print(e)
+        return JSONResponse(content={"error": "invalid token", "ok": False}, status_code=status.HTTP_401_UNAUTHORIZED)
+    if not UserService.compare_token(db, refreshToken, id=token_id["id"]):
+        return JSONResponse(content={"error": "invalid refresh token", "ok": False}, status_code=status.HTTP_401_UNAUTHORIZED)
+    headers = UserService.create_access_token(refreshToken)
+    response = JSONResponse(content={"ok": True}, headers=headers)
+    response.set_cookie('token', refreshToken, httponly=True)
+    return response
