@@ -38,12 +38,11 @@ def login(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
             "ok": False
         })
     user_json = jsonable_encoder(user_db)
-    headers = AuthService.create_access_token(user_db.id)
     token = AuthService.create_refresh_token(db, user_db.id)
     if not token:
         return {"fail": "fail"}
-    response = JSONResponse(content={**user_json, "refreshToken":token},
-    headers=headers)
+    headers = AuthService.create_access_token(token)
+    response = JSONResponse(content={**user_json, "refreshToken":token}, headers=headers)
     response.set_cookie('token', token, httponly=True)
     return response
     
