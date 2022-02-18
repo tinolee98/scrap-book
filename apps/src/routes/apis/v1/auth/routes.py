@@ -3,8 +3,8 @@ from fastapi import APIRouter, Body, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from src.common.response import verify_token
 from src.service.user import UserService
-from src.service.auth import AuthService
 from src.sql.database import get_db
 from src.sql.models import User
 from .schemas import UserIn, Token
@@ -19,11 +19,11 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True))
     existed = UserService.get_user_by_email(db, user.email)
     if existed:
         return JSONResponse(content={
-            "message": "already existed",
+            "error": "already existed",
             "ok": False
             }, status_code=status.HTTP_200_OK)
 
-    user_db = AuthService.create_user(db, user)
+    user_db = UserService.create_user(db, user)
     if user_db:
         json_user_db = jsonable_encoder(user_db)
         print(json_user_db)
@@ -34,14 +34,14 @@ def login(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
     user_db = UserService.get_user_by_email(db, user.email)
     if not user_db:
         return JSONResponse(content={
-            "message": "user not existed",
+            "error": "user not existed",
             "ok": False
         })
     user_json = jsonable_encoder(user_db)
-    token = AuthService.create_refresh_token(db, user_db.id)
+    token = UserService.create_refresh_token(db, user_db.id)
     if not token:
-        return {"fail": "fail"}
-    headers = AuthService.create_access_token(token)
+        return {"error": "no token", "ok": False}
+    headers = UserService.create_access_token(token)
     response = JSONResponse(content={**user_json, "refreshToken":token}, headers=headers)
     response.set_cookie('token', token, httponly=True)
     return response
@@ -52,15 +52,9 @@ def search(db:Session = Depends(get_db), id: int = 1):
     db_user = db.query(User).filter(User.id == id).first()
     if db_user:
         return db_user
-    return {"message" : "fail to find"}
+    return {"error": "fail to find an user"}
 
 # @rt.post('/test/{id}', response_model=Token)
-@rt.delete('/delete/{id}')
-def test(id:int = 1, db:Session = Depends(get_db)):
-    db.query(User).filter(User.id == id).delete()
-    db.commit()
-    return {"ok": True}
-
-    # token = AuthService.create_refresh_token(db, id)
-    # AuthService.verify_refresh_token(db, token)
-    # return
+@rt.delete('/delete')
+def delete(db:Session = Depends(get_db), user: User = Depends(verify_token)):
+    return UserService.delete_user(db, user.id)
