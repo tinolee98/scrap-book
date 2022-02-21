@@ -19,19 +19,4 @@ class BookService:
             url=book.url)
         db.add(db_book)
         db.commit()
-        # db.refresh(db_book)
         return True
-        # try:
-        #     db_book = Book(title=book.title,
-        #         authors=book.authors,
-        #         publisher=book.publisher,
-        #         contents=book.contents,
-        #         thumbnail=book.thumbnail,
-        #         url=book.url)
-        #     db.add(db_book)
-        #     db.commit()
-        #     # db.refresh(db_book)
-        #     return True
-        # except:  
-        #     print("fail")
-        #     return False
