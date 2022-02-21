@@ -45,7 +45,7 @@ def log_in(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
     token = UserService.create_refresh_token(db, user_db.id)
     if not token:
         return {"error": "no token", "ok": False}
-    headers = UserService.create_access_token(token)
+    headers = UserService.create_access_token(db, token)
     response = JSONResponse(content={**user_json, "refreshToken":token}, headers=headers)
     response.set_cookie('token', token, httponly=True)
     return response

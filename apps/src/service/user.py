@@ -23,6 +23,10 @@ class UserService:
         return db.query(User).filter(User.email == email).first()
     
     @staticmethod
+    def get_user_by_token(db: Session, token: str):
+        return db.query(User).filter(User.refreshToken == token).first()
+
+    @staticmethod
     def compare_token(db:Session, token: str, id: int):
         user = UserService.get_user_by_id(db, id)
         if user.refreshToken == token:
