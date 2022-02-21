@@ -20,3 +20,5 @@ class Config:
     ACCESS_TOKEN_KEY=JsonConfig.get_data("ACCESS_TOKEN_KEY")
     REFRESH_TOKEN_KEY=JsonConfig.get_data("REFRESH_TOKEN_KEY")
     JWT_ALGORITHM=JsonConfig.get_data("JWT_ALGORITHM")
+    KAKAO_BOOK_SEARCH_API_KEY=JsonConfig.get_data("KAKAO_BOOK_SEARCH_API_KEY")
+    KAKAO_BOOK_SEARCH_URL=JsonConfig.get_data("KAKAO_BOOK_SEARCH_URL")
