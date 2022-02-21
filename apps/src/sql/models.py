@@ -22,8 +22,12 @@ class User(Base):
 class Book(Base):
     __tablename__ = "book"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
-    name = Column(String(120), nullable=False)
+    title = Column(String(120), nullable=False)
     author = Column(String(120), nullable=False)
+    publisher = Column(String(120), nullable=False)
+    contents = Column(Text, nullable=False)
+    thumbnail = Column(String(180), nullable=False)
+    detailUrl = Column(String(180), nullable=False)
 
 class Scrapbook(Base):
     __tablename__ = "scrapbook"
