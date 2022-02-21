@@ -1,3 +1,4 @@
+from typing import Optional
 import jwt
 
 from fastapi import APIRouter, Body, Depends, status, Header
@@ -6,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
+from src.common.response import check_token
 from src.config import Config
 from src.common.response import verify_token
 from src.service.user import UserService
@@ -54,9 +56,6 @@ def log_out():
     response.set_cookie('token', '', httponly=True)
     return response
 
-
-    
-
 @rt.get('/{id}')
 def search(db:Session = Depends(get_db), id: int = 1):
     db_user = db.query(User).filter(User.id == id).first()
@@ -69,18 +68,10 @@ def search(db:Session = Depends(get_db), id: int = 1):
 def delete(db:Session = Depends(get_db), user: User = Depends(verify_token)):
     return UserService.delete_user(db, user.id)
 
-@rt.post('/refresh')
-def refresh(db:Session = Depends(get_db), request: Request = None, accessToken:str = Header(...)):
-    refreshToken = request.cookies.get('token')
-    try: 
-        jwt.decode(accessToken, Config.ACCESS_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
-        token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
-    except jwt.DecodeError as e:
-        print(e)
+@rt.get('/refresh')
+async def refresh(db: Session = Depends(get_db), refreshToken: Optional[str] = Depends(check_token)):
+    if not refreshToken:
         return JSONResponse(content={"error": "invalid token", "ok": False}, status_code=status.HTTP_401_UNAUTHORIZED)
-    if not UserService.compare_token(db, refreshToken, id=token_id["id"]):
-        return JSONResponse(content={"error": "invalid refresh token", "ok": False}, status_code=status.HTTP_401_UNAUTHORIZED)
-    headers = UserService.create_access_token(refreshToken)
+    headers = UserService.create_access_token(db, refreshToken)
     response = JSONResponse(content={"ok": True}, headers=headers)
-    response.set_cookie('token', refreshToken, httponly=True)
     return response

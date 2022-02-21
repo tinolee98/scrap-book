@@ -30,14 +30,13 @@ class UserService:
         return False
 
     @staticmethod
-    def create_access_token(refreshToken: str):
-        try:
-            token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
-        except jwt.DecodeError as e:
-            print(e)
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "invalid refresh token", "ok": False})
-        token = jwt.encode(token_id,Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
+    def create_access_token(db: Session, refreshToken: str):
+        user = UserService.get_user_by_token(db, refreshToken)
+        if not user:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
         exp = str(round( (datetime.datetime.now() + datetime.timedelta(minutes=30)).timestamp()))
+        iet = str(round(datetime.datetime.now().timestamp()))
+        token = jwt.encode({"id": user.id, "exp": exp, "iet": iet}, Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         return {
             "accessToken": token,
             "exp": exp
@@ -45,7 +44,8 @@ class UserService:
 
     @staticmethod
     def create_refresh_token(db: Session, id: int):
-        token = jwt.encode({"id": id}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
+        iet = str(round(datetime.datetime.now().timestamp()))
+        token = jwt.encode({"id": id, "iet": iet}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         db.query(User).filter(User.id == id).update({User.refreshToken: token})
         db.commit()
         return token
@@ -54,7 +54,6 @@ class UserService:
     def create_user(db:Session, user: UserIn):
         try:    
             hashedPW = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-            print(hashedPW)
             db_user = User(email=user.email, password=hashedPW)
             db.add(db_user)
             db.commit()
