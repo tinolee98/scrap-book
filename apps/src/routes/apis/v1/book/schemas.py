@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 
-class BookInfo(BaseModel):
+class BookIn(BaseModel):
     title: str
-    author: str
+    authors: str
     publisher: str
     contents: str
     thumbnail: str
-    detailUrl: str
+    url: str
 
