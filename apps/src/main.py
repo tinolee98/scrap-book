@@ -8,8 +8,10 @@ app = FastAPI()
 
 from .routes.apis.v1 import main_routes
 from .routes.apis.v1.auth import routes as authRoutes
+from .routes.apis.v1.user import routes as userRoutes
 
 app.include_router(main_routes.rt)
 app.include_router(authRoutes.rt)
+app.include_router(userRoutes.rt)
 
 path = "/Users/kunolee_98/Project/scrap-book/fastapi/src"
