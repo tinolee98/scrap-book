@@ -11,12 +11,15 @@ class BookService:
     
     @staticmethod
     def create_book(db:Session, book: BookIn):
-        db_book = Book(title=book.title,
-            authors=book.authors,
-            publisher=book.publisher,
-            contents=book.contents,
-            thumbnail=book.thumbnail,
-            url=book.url)
-        db.add(db_book)
-        db.commit()
-        return True
+        try:
+            db_book = Book(title=book.title,
+                authors=book.authors,
+                publisher=book.publisher,
+                contents=book.contents,
+                thumbnail=book.thumbnail,
+                url=book.url)
+            db.add(db_book)
+            db.commit()
+            return db_book
+        except:
+            return None
