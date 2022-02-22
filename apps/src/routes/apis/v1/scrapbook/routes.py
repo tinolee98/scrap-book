@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Body, status
+from fastapi import APIRouter, Depends, Body, status, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from src.service.book import BookService
@@ -28,3 +29,16 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
     if ok:
         return True
     return False
+
+@rt.get('/{scrapbook_id}/')
+def get_scraps_in_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "invalid token", "ok": False})
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id)
+    if not db_scrapbook:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "no scrapbook", "ok": False})
+    for scrapbook_user in db_scrapbook.users:
+        if user.id == scrapbook_user.id:
+            res = JSONResponse(content=jsonable_encoder(db_scrapbook))
+            return res
+
