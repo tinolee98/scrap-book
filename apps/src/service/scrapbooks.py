@@ -35,3 +35,8 @@ class ScrapbookService:
             return True
         except:
             return False
+
+    @staticmethod
+    def delete_scrapbook(db: Session, scrapbook: Scrapbook):
+        db.delete(scrapbook)
+        db.commit()
