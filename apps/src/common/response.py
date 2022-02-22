@@ -1,7 +1,6 @@
 import datetime
 import jwt
 
-
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Header, status, Request
@@ -11,6 +10,16 @@ from src.sql.models import User
 from src.sql.database import get_db
 
 from src.config import Config
+
+def error(code, error = None,ok=False):
+    if not error:
+        error = Config.ERROR_CODE[code]
+    detail = {
+        'error': error,
+        'ok': ok
+    }
+
+    return detail
 
 async def check_token(request: Request, db: Session = Depends(get_db), token: Optional[str] = Header(...), exp: Optional[str]= Header(...)):
     refreshToken = request.cookies.get('token')

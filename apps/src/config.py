@@ -16,6 +16,14 @@ class JsonConfig:
         return result
 
 class Config:
+    ERROR_CODE = {
+        40000: '입력 값이 잘못되었습니다.',
+        40100: '유효하지 않은 토큰입니다.',
+        40300: '권한이 없습니다.',
+        40400: '찾을 수 없습니다.',
+        50000: '서버 에러.',
+    }
+
     BASE_DIR=BASE_DIR
     ACCESS_TOKEN_KEY=JsonConfig.get_data("ACCESS_TOKEN_KEY")
     REFRESH_TOKEN_KEY=JsonConfig.get_data("REFRESH_TOKEN_KEY")
