@@ -44,6 +44,9 @@ async def verify_token(
     except jwt.DecodeError as e:
         print(e)
         return None
+    except jwt.ExpiredSignatureError as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "expired token", "ok": False})
     now = round(datetime.datetime.now().timestamp())
     if int(exp)-now < 0:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"error": "expired_token", "ok": False})
