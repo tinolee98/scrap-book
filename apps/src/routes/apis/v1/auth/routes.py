@@ -21,7 +21,7 @@ rt = APIRouter(
 )
 
 @rt.post("/signUp", description="회원가입 API", status_code=status.HTTP_201_CREATED)
-def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
+def sign_up(db: Session = Depends(get_db), user: UserIn = Body(...)):
     existed = UserService.get_user_by_email(db, user.email)
     if existed:
         return JSONResponse(content={
@@ -34,7 +34,7 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(..., embed=True))
     return JSONResponse(content={"user": json_user_db})
 
 @rt.post('/login')
-def log_in(db:Session = Depends(get_db), user: UserIn = Body(..., embed=True)):
+def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
     user_db = UserService.get_user_by_email(db, user.email)
     if not user_db:
         return JSONResponse(content={
