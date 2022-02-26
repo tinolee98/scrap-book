@@ -9,14 +9,6 @@ app = FastAPI()
 
 origins = ["*"]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],    
-)
-
 from .routes.apis.v1 import main_routes
 from .routes.apis.v1.auth import routes as authRoutes
 from .routes.apis.v1.user import routes as userRoutes
@@ -28,5 +20,13 @@ app.include_router(authRoutes.rt)
 app.include_router(userRoutes.rt)
 app.include_router(bookRoutes.rt)
 app.include_router(scrapbookRoutes.rt)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],    
+)
 
 path = "/Users/kunolee_98/Project/scrap-book/fastapi/src"
