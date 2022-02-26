@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text, DateTime, column
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text, DateTime, UniqueConstraint, column
 from sqlalchemy.orm import relationship, backref
 
 from .database import Base
@@ -33,9 +33,9 @@ class Scrapbook(Base):
     __tablename__ = "scrapbook"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     uuid = Column(String(20), unique=True, nullable=False)
-    users = relationship('User', secondary=scrapbook_users, backref=backref('scrapbooks'))
+    users = relationship('User', secondary=scrapbook_users, backref=backref('scrapbooks', lazy='dynamic'))
     bookId = Column(Integer, ForeignKey('book.id'), nullable=False)
-    book = relationship('Book', backref=backref('scrapbooks'))
+    book = relationship('Book', backref=backref('scrapbooks', lazy='dynamic'))
     createdAt = Column(DateTime, default=datetime.now(), nullable=False)
     updatedAt = Column(DateTime)
     # scraps
@@ -47,8 +47,15 @@ class Scrap(Base):
     page = Column(Integer, nullable=False)
     picture = Column(String(120), nullable=False, unique=True)
     userId = Column(Integer, ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
-    user = relationship('User', backref=backref('scraps'))
+    user = relationship('User', backref=backref('scraps', lazy='dynamic'))
     scrapbookId = Column(Integer, ForeignKey('scrapbook.id', ondelete="CASCADE"), nullable=False)
-    scrapbook = relationship('Scrapbook', backref=backref('scraps'))
+    scrapbook = relationship('Scrapbook', backref=backref('scraps', lazy='dynamic'))
     createdAt = Column(DateTime, default=datetime.now(), nullable=False)
     updatedAt = Column(DateTime)
+
+class ScrapbookStar(Base):
+    __tablename__ = "scrapbook_star"
+    id = Column(Integer, primary_key=True, index=True, nullable=False)
+    userId = Column(Integer, ForeignKey('user.id'), nullable=False)
+    scrapbookId = Column(Integer, ForeignKey('scrapbook.id'), nullable=False)
+    __table_args__ = (UniqueConstraint('userId', 'scrapbookId', name='_user_scrapbook_uc'),)
