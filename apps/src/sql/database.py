@@ -2,8 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL="sqlite:///src/scrapbook.db"
-# SQLALCHEMY_DATABASE_URL="postgresql db endpoint"
+from src.config import Config
+
+SQLALCHEMY_DATABASE_URL= Config.database_url('postgresql')
 
 if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
