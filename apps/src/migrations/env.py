@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 import os, sys
+from config import Config
 sys.path.append(os.getcwd())
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,11 +20,14 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from sql.models import User, Scrap, Scrapbook, Book
+import sql.models
 from sql.database import Base
 # Base보다 model들을 먼저 import 해야 autogenerate 가능
 target_metadata = Base.metadata
 
+
+if not config.get_main_option('sqlalchemy.url'):
+    config.set_main_option('sqlalchemy.url', Config.database_url('postgresql'))
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
