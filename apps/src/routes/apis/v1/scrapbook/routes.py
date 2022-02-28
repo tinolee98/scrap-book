@@ -15,12 +15,16 @@ rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
 
 @rt.get('s/')
 def get_scrapbooks(db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
     scrapbooks = ScrapbookService.get_scrapbooks(db, user.id)
     res = JSONResponse(content={"scrapbooks": scrapbooks})
     return res
 
 @rt.post('/', status_code=status.HTTP_201_CREATED)
 def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
     db_book = BookService.existed_book(db, book.authors, book.title)
     if not db_book:
         db_book = BookService.create_book(db, book)
@@ -50,5 +54,18 @@ def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: Use
     db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id)
     if not db_scrapbook:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error(40400, "스크랩북이 존재하지 않습니다."))
+    if not user not in db_scrapbook.users:
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=error(40300))
     ScrapbookService.delete_scrapbook(db, db_scrapbook)
     return {"ok": True}
+
+@rt.put('/{scrapbook_id}/')
+def update_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id)
+    if not db_scrapbook:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error(40400, "스크랩북이 존재하지 않습니다."))
+    if not user not in db_scrapbook.users:
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=error(40300))
+    return
