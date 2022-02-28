@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
+from src.common.schema import OkError
 from src.common.response import check_token
 from src.config import Config
 from src.common.response import verify_token
@@ -48,13 +49,13 @@ def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
         return {"error": "no token", "ok": False}
     token = UserService.create_access_token(db, token)
     response = JSONResponse(content={"id": user_db.id, "email": user_db.email, "accessToken":token["accessToken"], "exp": token["exp"]})
-    response.set_cookie('token', token, httponly=True)
+    response.set_cookie('token', token, httponly=True, secure=True)
     return response
 
-@rt.get('/logOut')
+@rt.get('/logOut', description="로그아웃 API", response_model=OkError)
 def log_out():
     response = JSONResponse(content={"ok": True})
-    response.set_cookie('token', '', httponly=True)
+    response.set_cookie('token', '', httponly=True, secure=True)
     return response
 
 @rt.get('/{id}')
