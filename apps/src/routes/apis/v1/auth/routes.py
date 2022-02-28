@@ -13,7 +13,7 @@ from src.common.response import verify_token
 from src.service.user import UserService
 from src.sql.database import get_db
 from src.sql.models import User
-from src.routes.apis.v1.auth.schemas import UserIn, Token, UserOut
+from src.routes.apis.v1.auth.schemas import UserIn, UserToken, UserOut
 
 rt = APIRouter(
     prefix='/apis/v1/auth',
@@ -35,7 +35,7 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(...)):
     json_user_db = jsonable_encoder(user_db)
     return JSONResponse(content= json_user_db)
 
-@rt.post('/login')
+@rt.post('/login', description="로그인 API", response_model=UserToken)
 def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
     user_db = UserService.get_user_by_email(db, user.email)
     if not user_db:
@@ -43,12 +43,11 @@ def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
             "error": "user not existed",
             "ok": False
         })
-    user_json = jsonable_encoder(user_db)
     token = UserService.create_refresh_token(db, user_db.id)
     if not token:
         return {"error": "no token", "ok": False}
-    headers = UserService.create_access_token(db, token)
-    response = JSONResponse(content={**user_json, "refreshToken":token}, headers=headers)
+    token = UserService.create_access_token(db, token)
+    response = JSONResponse(content={"id": user_db.id, "email": user_db.email, "accessToken":token["accessToken"], "exp": token["exp"]})
     response.set_cookie('token', token, httponly=True)
     return response
 
