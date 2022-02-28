@@ -2,13 +2,13 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 class UserBase(BaseModel):
-    email: EmailStr = Field(..., title="유저 이메일", example="user@example.com")
+    email: EmailStr = Field(..., title="유저 이메일", example="mingo@scrap.com")
 
 class UserIn(UserBase):
     password: str = Field(..., title="비밀번호", example="1234")
 
 class UserOut(UserBase):
-    pass
+    id: int = Field(..., title="유저 아이디", example="1")
 
 class UserInDB(UserBase):
     password: str = Field(...,

@@ -58,12 +58,14 @@ class UserService:
     def create_user(db:Session, user: UserIn):
         try:    
             hashedPW = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+            hashedPW = hashedPW.decode('utf-8')
             db_user = User(email=user.email, password=hashedPW)
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
             return db_user
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     @staticmethod

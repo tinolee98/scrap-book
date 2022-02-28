@@ -13,14 +13,14 @@ from src.common.response import verify_token
 from src.service.user import UserService
 from src.sql.database import get_db
 from src.sql.models import User
-from .schemas import UserIn, Token
+from src.routes.apis.v1.auth.schemas import UserIn, Token, UserOut
 
 rt = APIRouter(
     prefix='/apis/v1/auth',
     tags=['apis/v1/auth']
 )
 
-@rt.post("/signUp", description="회원가입 API", status_code=status.HTTP_201_CREATED)
+@rt.post("/signUp", description="회원가입 API", status_code=status.HTTP_201_CREATED, response_model=UserOut)
 def sign_up(db: Session = Depends(get_db), user: UserIn = Body(...)):
     existed = UserService.get_user_by_email(db, user.email)
     if existed:
@@ -30,8 +30,10 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(...)):
             }, status_code=status.HTTP_200_OK)
 
     user_db = UserService.create_user(db, user)
+    if not user_db:
+        return JSONResponse(content={"error": "fail to create user", "ok": False}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     json_user_db = jsonable_encoder(user_db)
-    return JSONResponse(content={"user": json_user_db})
+    return JSONResponse(content= json_user_db)
 
 @rt.post('/login')
 def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
