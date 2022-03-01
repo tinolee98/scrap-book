@@ -58,12 +58,12 @@ def log_out():
     response.set_cookie('token', '', httponly=True, secure=True)
     return response
 
-@rt.get('/{id}')
+@rt.get('/{id}', description="ID 기반 유저 검색 API", response_model=UserOut)
 def search(db:Session = Depends(get_db), id: int = 1):
     db_user = db.query(User).filter(User.id == id).first()
     if db_user:
-        return db_user
-    return {"error": "fail to find an user"}
+        return JSONResponse(content={"id": id, "email": db_user.email}) 
+    return {"ok": False, "error": "fail to find an user"}
 
 # @rt.post('/test/{id}', response_model=Token)
 @rt.delete('/delete')
