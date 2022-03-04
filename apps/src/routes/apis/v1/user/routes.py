@@ -23,6 +23,6 @@ def user_books(db: Session = Depends(get_db), user_id: int = Field(...)):
 @rt.get('/me', description='로그인한 유저 정보 API', response_model=UserOut)
 def me(user: User = Depends(verify_token)):
     if not user:
-        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
+        return JSONResponse(content={"ok": False, "error": "invalid token"}, status_code=status.HTTP_401_UNAUTHORIZED)
     json_user = jsonable_encoder(user)
     return json_user
