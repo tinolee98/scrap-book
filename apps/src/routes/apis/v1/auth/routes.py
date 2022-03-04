@@ -1,7 +1,7 @@
 from typing import Optional
 import jwt
 
-from fastapi import APIRouter, Body, Depends, status, Header
+from fastapi import APIRouter, Body, Depends, status, Header, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -14,7 +14,7 @@ from src.common.response import verify_token
 from src.service.user import UserService
 from src.sql.database import get_db
 from src.sql.models import User
-from src.routes.apis.v1.auth.schemas import UserIn, UserToken, UserOut
+from src.routes.apis.v1.auth.schemas import UserIn, LoginResult, UserOut
 
 rt = APIRouter(
     prefix='/apis/v1/auth',
@@ -36,7 +36,7 @@ def sign_up(db: Session = Depends(get_db), user: UserIn = Body(...)):
     json_user_db = jsonable_encoder(user_db)
     return JSONResponse(content= json_user_db)
 
-@rt.post('/login', description="로그인 API", response_model=UserToken)
+@rt.post('/login', description="로그인 API", response_model=LoginResult)
 def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
     user_db = UserService.get_user_by_email(db, user.email)
     if not user_db:
@@ -44,19 +44,22 @@ def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
             "error": "user not existed",
             "ok": False
         })
-    token = UserService.create_refresh_token(db, user_db.id)
-    if not token:
-        return {"error": "no token", "ok": False}
-    token = UserService.create_access_token(db, token)
-    response = JSONResponse(content={"id": user_db.id, "email": user_db.email, "accessToken":token["accessToken"], "exp": token["exp"]})
-    response.set_cookie('token', token, httponly=True, secure=True)
-    return response
+    if not UserService.check_password(user.password, user_db.password):
+        return JSONResponse(content={
+            "error": "incorrect password",
+            "ok": False
+        })
+    refreshToken = UserService.create_refresh_token(db, user_db.id)
+    if not refreshToken:
+        return {"error": "no refresh token", "ok": False}
+    token = UserService.create_access_token(db, refreshToken)
+    return JSONResponse(content={"ok": True, "accessToken":token["accessToken"], "exp": token["exp"], "refreshToken": refreshToken})
 
-@rt.get('/logOut', description="로그아웃 API", response_model=OkError)
-def log_out():
-    response = JSONResponse(content={"ok": True})
-    response.set_cookie('token', '', httponly=True, secure=True)
-    return response
+@rt.delete('/logOut', description="로그아웃 API", response_model=OkError)
+def log_out(db: Session = Depends(get_db)):
+    if not UserService.delete_refresh_token(db):
+        return JSONResponse(content={"ok": False, "error": "fail to log out"})
+    return JSONResponse(content={"ok": True})
 
 @rt.get('/{id}', description="ID 기반 유저 검색 API", response_model=UserOut)
 def search(db:Session = Depends(get_db), id: int = 1):
@@ -70,10 +73,13 @@ def search(db:Session = Depends(get_db), id: int = 1):
 def delete(db:Session = Depends(get_db), user: User = Depends(verify_token)):
     return UserService.delete_user(db, user.id)
 
-@rt.get('/refresh')
+# response model 추가히기
+@rt.post('/refresh', description="리프레시 API", response_model=LoginResult)
 async def refresh(db: Session = Depends(get_db), refreshToken: Optional[str] = Depends(check_token)):
     if not refreshToken:
         return JSONResponse(content={"error": "invalid token", "ok": False}, status_code=status.HTTP_401_UNAUTHORIZED)
-    headers = UserService.create_access_token(db, refreshToken)
-    response = JSONResponse(content={"ok": True}, headers=headers)
-    return response
+    token = UserService.create_access_token(db, refreshToken)
+    refreshToken = UserService.create_refresh_token(db, token=token['accessToken'])
+    if not refreshToken:
+        return JSONResponse(content={"ok": False, "error": "invalid refreshToken"}, status_code=status.HTTP_401_UNAUTHORIZED)
+    return JSONResponse(content={"ok": True, "accessToken": token["accessToken"], "exp": token["exp"], "refreshToken": refreshToken})
