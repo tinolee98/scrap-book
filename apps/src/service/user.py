@@ -27,6 +27,10 @@ class UserService:
         return db.query(User).filter(User.refreshToken == token).first()
 
     @staticmethod
+    def delete_refresh_token(db: Session, id: int):
+        pass
+
+    @staticmethod
     def compare_token(db:Session, token: str, id: int):
         user = UserService.get_user_by_id(db, id)
         if user.refreshToken == token:
@@ -43,17 +47,35 @@ class UserService:
         token = jwt.encode({"id": user.id, "exp": exp, "iet": iet}, Config.ACCESS_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
         return {
             "accessToken": token,
-            "exp": exp
+            "exp": 30
         }
 
     @staticmethod
-    def create_refresh_token(db: Session, id: int):
+    def create_refresh_token(db: Session, id: int = None, token: str = None):
         iet = str(round(datetime.datetime.now().timestamp()))
-        token = jwt.encode({"id": id, "iet": iet}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
-        db.query(User).filter(User.id == id).update({User.refreshToken: token})
+        if token:
+            try:
+                token_id = jwt.decode(token, Config.ACCESS_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+                id = token_id['id']
+            except jwt.DecodeError as e:
+                print(e)
+                return False
+            except jwt.ExpiredSignatureError as e:
+                print(e)
+                return False
+        elif not id:
+            return False
+        refreshToken = jwt.encode({"id": id, "iet": iet}, Config.REFRESH_TOKEN_KEY, algorithm=Config.JWT_ALGORITHM)
+        db.query(User).filter(User.id == id).update({User.refreshToken: refreshToken})
         db.commit()
-        return token
+        return refreshToken
     
+    @staticmethod
+    def check_password(password: str, password_db: str):
+        password_db = password_db.encode('utf-8')
+        password = password.encode('utf-8')
+        return bcrypt.checkpw(password, password_db)
+
     @staticmethod
     def create_user(db:Session, user: UserIn):
         try:    
