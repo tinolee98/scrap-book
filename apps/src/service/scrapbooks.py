@@ -2,16 +2,29 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.sql.models import Scrapbook, User
+from src.sql.models import Scrapbook, User, ScrapbookStar
 
 class ScrapbookService:
     @staticmethod
     def get_scrapbooks(db: Session, user_id: int):
-        return db.query(User).filter(User.id == user_id).first().scrapbooks
+        result = []
+        scrapbooks = db.query(User).filter(User.id == user_id).first().scrapbooks
+        for scrapbook in scrapbooks:
+            scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id)
+            result.append(scrapbook)
+        return result
 
     @staticmethod
     def get_scrapbook_by_id(db: Session, id: int):
-        return db.query(Scrapbook).filter(Scrapbook.id == id).first()
+        scrapbook = db.query(Scrapbook).filter(Scrapbook.id == id).first()
+        scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id)
+        return scrapbook
+
+    @staticmethod
+    def is_starred(db: Session, id: int):
+        if db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == id).first():
+            return True
+        return False
 
     @staticmethod
     def has_scrapbook(db: Session,  user_id: int, book_id: int):
