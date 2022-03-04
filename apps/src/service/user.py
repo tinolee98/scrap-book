@@ -27,8 +27,17 @@ class UserService:
         return db.query(User).filter(User.refreshToken == token).first()
 
     @staticmethod
-    def delete_refresh_token(db: Session, id: int):
-        pass
+    def delete_refresh_token(db: Session, refreshToken: str):
+        try:
+            token_id = jwt.decode(refreshToken, Config.REFRESH_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
+            id = token_id["id"]
+        except:
+            return False
+        user = UserService.get_user_by_id(db, id)
+        user.refreshToken = ''
+        if UserService.update_user(db, user):
+            return True
+        return False
 
     @staticmethod
     def compare_token(db:Session, token: str, id: int):
@@ -89,6 +98,12 @@ class UserService:
         except Exception as e:
             print(e)
             return False
+
+    @staticmethod
+    def update_user(db: Session, user: User):
+        db.commit()
+        db.refresh(user)
+        return True
 
     @staticmethod
     def delete_user(db: Session, id: id):

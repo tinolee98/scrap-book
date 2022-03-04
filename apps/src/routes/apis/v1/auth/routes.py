@@ -56,8 +56,8 @@ def log_in(db:Session = Depends(get_db), user: UserIn = Body(...)):
     return JSONResponse(content={"ok": True, "accessToken":token["accessToken"], "exp": token["exp"], "refreshToken": refreshToken})
 
 @rt.delete('/logOut', description="로그아웃 API", response_model=OkError)
-def log_out(db: Session = Depends(get_db)):
-    if not UserService.delete_refresh_token(db):
+def log_out(refreshToken: str = Header(...), db: Session = Depends(get_db)):
+    if not UserService.delete_refresh_token(db, refreshToken):
         return JSONResponse(content={"ok": False, "error": "fail to log out"})
     return JSONResponse(content={"ok": True})
 
