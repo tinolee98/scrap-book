@@ -16,14 +16,14 @@ from src.routes.apis.v1.book.schemas import BookIn
 rt = APIRouter(prefix='/apis/v1/book', tags=['/apis/v1/book'])
 URL = Config.KAKAO_BOOK_SEARCH_URL
 
-@rt.get('s/')
+@rt.get('s')
 async def search_books(name: str):
     params = {"query": name}
     headers = {'Authorization': "KakaoAK {}".format(Config.KAKAO_BOOK_SEARCH_API_KEY)}
     book_res = requests.get(url=URL, params=params, headers=headers)
     return book_res.json()
 
-@rt.post('/')
+@rt.post('')
 async def create_book(book: BookIn = Body(...), db: Session = Depends(get_db)):
     if not book:
         return {"ok": False}

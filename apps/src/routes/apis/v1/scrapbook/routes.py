@@ -13,7 +13,7 @@ from src.routes.apis.v1.book.schemas import BookIn
 
 rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
 
-@rt.get('s/')
+@rt.get('s')
 def get_scrapbooks(db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
@@ -21,7 +21,7 @@ def get_scrapbooks(db: Session = Depends(get_db), user: User = Depends(verify_to
     res = JSONResponse(content={"scrapbooks": scrapbooks})
     return res
 
-@rt.post('/', status_code=status.HTTP_201_CREATED)
+@rt.post('', status_code=status.HTTP_201_CREATED)
 def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
@@ -35,7 +35,7 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
         return {"ok": True}
     return {"ok": False}
 
-@rt.get('/{scrapbook_id}/')
+@rt.get('/{scrapbook_id}')
 def get_scraps_in_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
@@ -47,7 +47,7 @@ def get_scraps_in_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), us
             res = JSONResponse(content=jsonable_encoder(db_scrapbook))
             return res
 
-@rt.delete('/{scrapbook_id}/')
+@rt.delete('/{scrapbook_id}')
 def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
@@ -59,7 +59,7 @@ def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: Use
     ScrapbookService.delete_scrapbook(db, db_scrapbook)
     return {"ok": True}
 
-@rt.put('/{scrapbook_id}/')
+@rt.put('/{scrapbook_id}')
 def update_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
