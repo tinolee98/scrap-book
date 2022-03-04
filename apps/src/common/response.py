@@ -21,15 +21,15 @@ def error(code, error = None,ok=False):
 
     return detail
 
-async def check_token(request: Request, db: Session = Depends(get_db), token: Optional[str] = Header(...), exp: Optional[str]= Header(...)):
+async def check_token(request: Request, db: Session = Depends(get_db), accessToken: Optional[str] = Header(...)):
     refreshToken = request.cookies.get('token')
-    if not refreshToken or not token or not exp:
+    if not refreshToken or not accessToken:
         return None
     user = UserService.get_user_by_token(db, refreshToken)
     if not user:
         return None
     try:
-        token_id = jwt.decode(token, Config.ACCESS_TOKEN_KEY, Config.JWT_ALGORITHM)
+        token_id = jwt.decode(accessToken, Config.ACCESS_TOKEN_KEY, Config.JWT_ALGORITHM)
         id = token_id['id']
     except jwt.DecodeError as e:
         print(e)
@@ -40,10 +40,9 @@ async def check_token(request: Request, db: Session = Depends(get_db), token: Op
 
 async def verify_token(
     accesstoken:Optional[str] = Header(None),
-    exp: Optional[str] = Header(None),
     db: Session = Depends(get_db)
     ):
-    if not accesstoken or not exp:
+    if not accesstoken:
         return None
     try:
         token_id = jwt.decode(accesstoken, Config.ACCESS_TOKEN_KEY, algorithms=Config.JWT_ALGORITHM)
@@ -56,10 +55,6 @@ async def verify_token(
     except jwt.ExpiredSignatureError as e:
         print(e)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "expired token", "ok": False})
-    now = round(datetime.datetime.now().timestamp())
-    if int(exp)-now < 0:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"error": "expired_token", "ok": False})
-
     current_user = UserService.get_user_by_id(db, id)
     return current_user
 
