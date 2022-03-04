@@ -18,6 +18,7 @@ def get_scrapbooks(db: Session = Depends(get_db), user: User = Depends(verify_to
     if not user:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error(40100))
     scrapbooks = ScrapbookService.get_scrapbooks(db, user.id)
+    scrapbooks = jsonable_encoder(scrapbooks)
     res = JSONResponse(content={"scrapbooks": scrapbooks})
     return res
 
