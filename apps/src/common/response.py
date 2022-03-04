@@ -21,8 +21,7 @@ def error(code, error = None,ok=False):
 
     return detail
 
-async def check_token(request: Request, db: Session = Depends(get_db), accessToken: Optional[str] = Header(...)):
-    refreshToken = request.cookies.get('token')
+async def check_token(db: Session = Depends(get_db), refreshToken: Optional[str] = Header(...), accessToken: Optional[str] = Header(...)):
     if not refreshToken or not accessToken:
         return None
     user = UserService.get_user_by_token(db, refreshToken)
