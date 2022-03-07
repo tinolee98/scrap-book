@@ -3,7 +3,7 @@ import jwt
 
 from typing import Optional
 
-from fastapi import Depends, Header, status, Request
+from fastapi import Depends, Header, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from src.service.user import UserService
