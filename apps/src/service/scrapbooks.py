@@ -15,19 +15,31 @@ class ScrapbookService:
         return result
 
     @staticmethod
-    def get_scrapbook_by_id(db: Session, id: int):
-        scrapbook = db.query(Scrapbook).filter(Scrapbook.id == id).first()
-        scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id)
+    def get_scrapbook_by_id(db: Session, scrapbook_id: int, user_id: int):
+        scrapbook = db.query(Scrapbook).filter(Scrapbook.id == scrapbook_id).first()
+        if not scrapbook:
+            return None
+        scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id, user_id)
         return scrapbook
 
     @staticmethod
-    def is_starred(db: Session, id: int):
-        if db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == id).first():
+    def is_starred(db: Session, scrapbook_id: int, user_id: int):
+        if db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == scrapbook_id).filter(ScrapbookStar.userId == user_id).first():
             return True
         return False
+    
+    @staticmethod
+    def create_star(db: Session, scrapbook_id: int, user_id: int):
+        try:
+            newScrapbookStar = ScrapbookStar(userId=user_id, scrapbookId=scrapbook_id)
+            db.add(newScrapbookStar)
+            db.commit()
+            return True
+        except:
+            return False
 
     @staticmethod
-    def has_scrapbook(db: Session,  user_id: int, book_id: int):
+    def scrapbook_already_exists(db: Session,  user_id: int, book_id: int):
         scrapbooks = ScrapbookService.get_scrapbooks(db, user_id)
         for scrapbook in scrapbooks:
             if scrapbook.bookId == book_id:
