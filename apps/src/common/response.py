@@ -3,7 +3,8 @@ import jwt
 
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Header, status, Request
+from fastapi import Depends, Header, status, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from src.service.user import UserService
 from src.sql.models import User
@@ -53,7 +54,7 @@ async def verify_token(
         return None
     except jwt.ExpiredSignatureError as e:
         print(e)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "expired token", "ok": False})
+        return None
     current_user = UserService.get_user_by_id(db, id)
     return current_user
 
