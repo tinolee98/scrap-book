@@ -76,3 +76,19 @@ def create_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user
     if ok:
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': ok})
     return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': ok, 'error': '즐겨찾기 생성을 실패했습니다.'})
+
+@rt.delete('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 삭제 API')
+def delete_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id, user.id)
+    if not db_scrapbook:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, "스크랩북이 존재하지 않습니다."))
+    if user not in db_scrapbook.users:
+        return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content=error(40300))
+    if not db_scrapbook.star:
+        return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': False, 'error': "이미 즐겨찾기가 없습니다."})
+    ok = ScrapbookService.delete_star(db, scrapbook_id, user.id)
+    if ok:
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': ok})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': ok, 'error': '즐겨찾기 삭제를 실패했습니다.'})

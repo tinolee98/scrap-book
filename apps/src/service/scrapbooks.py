@@ -24,7 +24,10 @@ class ScrapbookService:
 
     @staticmethod
     def is_starred(db: Session, scrapbook_id: int, user_id: int):
-        if db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == scrapbook_id).filter(ScrapbookStar.userId == user_id).first():
+        if db.query(ScrapbookStar) \
+            .filter(ScrapbookStar.scrapbookId == scrapbook_id) \
+            .filter(ScrapbookStar.userId == user_id) \
+            .first():
             return True
         return False
     
@@ -33,6 +36,19 @@ class ScrapbookService:
         try:
             newScrapbookStar = ScrapbookStar(userId=user_id, scrapbookId=scrapbook_id)
             db.add(newScrapbookStar)
+            db.commit()
+            return True
+        except:
+            return False
+
+    @staticmethod
+    def delete_star(db: Session, scrapbook_id: int, user_id: int):
+        try:
+            db_scrapbook_star = db.query(ScrapbookStar) \
+                                    .filter(ScrapbookStar.userId == user_id) \
+                                    .filter(ScrapbookStar.scrapbookId == scrapbook_id) \
+                                    .first()
+            db.delete(db_scrapbook_star)
             db.commit()
             return True
         except:
