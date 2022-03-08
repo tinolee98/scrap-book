@@ -2,15 +2,17 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from src.sql.models import Scrapbook, User, ScrapbookStar
+from src.sql.models import Scrapbook, User, ScrapbookStar, Scrap
 
 class ScrapbookService:
     @staticmethod
-    def get_scrapbooks(db: Session, user_id: int):
+    def get_scrapbooks(db: Session, user_id: int, limit: int, offset: int):
         result = []
-        scrapbooks = db.query(User).filter(User.id == user_id).first().scrapbooks
+        scrapbooks = db.query(User).filter(User.id == user_id).first().scrapbooks.offset(offset).limit(limit).all()
         for scrapbook in scrapbooks:
-            scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id)
+            scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id, user_id)
+            scrapbook.book
+            scrapbook.countScraps = ScrapbookService.count_scraps(db, scrapbook.id)
             result.append(scrapbook)
         return result
 
@@ -31,6 +33,12 @@ class ScrapbookService:
             return True
         return False
     
+
+    @staticmethod
+    def count_scraps(db: Session, scrapbook_id: int):
+        return db.query(Scrap).filter(Scrap.scrapbookId == scrapbook_id).count()
+
+
     @staticmethod
     def create_star(db: Session, scrapbook_id: int, user_id: int):
         try:

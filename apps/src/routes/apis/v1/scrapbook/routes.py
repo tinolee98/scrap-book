@@ -14,10 +14,10 @@ from src.routes.apis.v1.book.schemas import BookIn
 rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
 
 @rt.get('s', description='스크랩북 목록 읽기 API')
-def get_scrapbooks(db: Session = Depends(get_db), user: User = Depends(verify_token)):
+def get_scrapbooks(limit: int, offset: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
-    scrapbooks = ScrapbookService.get_scrapbooks(db, user.id)
+    scrapbooks = ScrapbookService.get_scrapbooks(db, user.id, limit, offset)
     scrapbooks = jsonable_encoder(scrapbooks)
     res = JSONResponse(content={"scrapbooks": scrapbooks})
     return res

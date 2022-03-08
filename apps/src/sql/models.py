@@ -35,7 +35,7 @@ class Scrapbook(Base):
     uuid = Column(String(20), unique=True, nullable=False)
     users = relationship('User', secondary=scrapbook_users, backref=backref('scrapbooks', lazy='dynamic'))
     bookId = Column(Integer, ForeignKey('book.id'), nullable=False)
-    book = relationship('Book', backref=backref('scrapbooks', lazy='dynamic'))
+    book = relationship('Book', lazy='select')
     createdAt = Column(DateTime, default=datetime.now(), nullable=False)
     updatedAt = Column(DateTime)
     # scraps
