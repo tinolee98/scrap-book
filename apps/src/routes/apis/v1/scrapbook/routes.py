@@ -3,17 +3,18 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
-from src.common.response import error
+from src.common.schema import OkError
+from src.common.response import error, verify_token
 from src.service.book import BookService
 from src.service.scrapbooks import ScrapbookService
 from src.sql.models import User, Scrapbook, ScrapbookStar
 from src.sql.database import get_db
-from src.common.response import verify_token
+from src.routes.apis.v1.scrapbook.schemas import ResScrapbooks, ResScrapbook
 from src.routes.apis.v1.book.schemas import BookIn
 
 rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
 
-@rt.get('s', description='스크랩북 목록 읽기 API')
+@rt.get('s', description='스크랩북 목록 읽기 API', response_model=ResScrapbooks)
 def get_scrapbooks(limit: int, offset: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
@@ -23,7 +24,7 @@ def get_scrapbooks(limit: int, offset: int, db: Session = Depends(get_db), user:
     return res
 
 # uuid 기반으로 스크랩북에 참가하는 경우는 어떻게 할까.
-@rt.post('', description='스크랩북 생성 API', status_code=status.HTTP_201_CREATED)
+@rt.post('', description='스크랩북 생성 API', response_model=OkError ,status_code=status.HTTP_201_CREATED)
 def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
@@ -37,7 +38,7 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
         return {"ok": True}
     return {"ok": False}
 
-@rt.get('/{scrapbook_id}')
+@rt.get('/{scrapbook_id}', description='id 기반 스크랩북 읽기 API', response_model=ResScrapbook)
 def get_scraps_in_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
@@ -49,7 +50,7 @@ def get_scraps_in_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), us
             res = JSONResponse(content=jsonable_encoder(db_scrapbook))
             return res
 
-@rt.delete('/{scrapbook_id}', description='스크랩북 삭제 API')
+@rt.delete('/{scrapbook_id}', description='스크랩북 삭제 API', response_model=OkError)
 def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
@@ -61,7 +62,7 @@ def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: Use
     ScrapbookService.delete_scrapbook(db, db_scrapbook)
     return {"ok": True}
 
-@rt.post('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 생성 API')
+@rt.post('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 생성 API', response_model=OkError)
 def create_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
@@ -77,7 +78,7 @@ def create_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': ok})
     return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': ok, 'error': '즐겨찾기 생성을 실패했습니다.'})
 
-@rt.delete('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 삭제 API')
+@rt.delete('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 삭제 API', response_model=OkError)
 def delete_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
