@@ -1,0 +1,28 @@
+from fastapi import APIRouter, Depends, UploadFile, status, Body
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import Session
+
+from src.common.errors import error
+from src.common.response import verify_token
+from src.common.schema import OkError
+from src.service.scrap import ScrapService
+from src.service.scrapbooks import ScrapbookService
+from src.sql.database import get_db
+from src.sql.models import User
+from src.routes.apis.v1.scrap.schemas import ResScrap, ResScraps
+
+rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
+  
+
+@rt.post('/{scrapbook_id}/scrap', description='스크랩 생성 API', response_model=OkError)
+def create_scrap(scrapbook_id: int, picture: UploadFile = Body(...), scrap: ResScrap = Body(...), user: User = Depends(verify_token), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id, user.id)
+    if not db_scrapbook:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, '스크랩북이 존재하지 않습니다.'))
+    picture_url = '1234' # s3를 이용해서 바꾸기 (아직 귀찮아서 적용 안함)
+    if ScrapService.create_scrap(db, user.id, scrapbook_id, scrap.text, scrap.page, picture_url):
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': True})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': False, 'error': '스크랩 생성에 실패하였습니다.'})
