@@ -14,3 +14,12 @@ class ScrapService:
             return True
         except:
             return False
+
+    @staticmethod
+    def delete_scrap(db: Session, scrap_id: int):
+        try:
+            db.query(Scrap).filter(Scrap.id == scrap_id).delete()
+            db.commit()
+            return True
+        except:
+            return False
