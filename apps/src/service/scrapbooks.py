@@ -22,6 +22,7 @@ class ScrapbookService:
         if not scrapbook:
             return None
         scrapbook.star = ScrapbookService.is_starred(db, scrapbook.id, user_id)
+        scrapbook.countScraps = ScrapbookService.count_scraps(db, scrapbook.id)
         return scrapbook
 
     @staticmethod
