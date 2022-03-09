@@ -8,9 +8,18 @@ class ScrapService:
     @staticmethod
     def create_scrap(db: Session, user_id: int, scrapbook_id: int, text: Text, page: int, picture_url: Str):
         try:
-            new_scrap = Scrap(user_id=user_id, scrapbook_id=scrapbook_id, text=text, page=page, picture_url=picture_url)
+            new_scrap = Scrap(userId=user_id, scrapbookId=scrapbook_id, text=text, page=page, picture=picture_url)
             db.add(new_scrap)
             db.commit()
+            return True
+        except:
+            return False
+
+    @staticmethod
+    def update_scrap(db: Session, scrap: Scrap):
+        try:
+            db.commit()
+            db.refresh(scrap)
             return True
         except:
             return False
@@ -23,3 +32,7 @@ class ScrapService:
             return True
         except:
             return False
+
+    @staticmethod
+    def get_scrap_by_id(db: Session, scrap_id: int):
+        return db.query(Scrap).filter(Scrap.id == scrap_id).first()
