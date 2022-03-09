@@ -51,6 +51,7 @@ def run_migrations_offline():
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        compare_type=True, # 동일한 타입이더라도 사이즈가 다르면 변경 허용
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -73,7 +74,7 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata, compare_type=True
         )
 
         with context.begin_transaction():
