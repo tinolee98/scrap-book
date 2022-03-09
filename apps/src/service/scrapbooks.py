@@ -1,8 +1,9 @@
+from datetime import datetime
 import uuid
 
 from sqlalchemy.orm import Session
 
-from src.sql.models import Scrapbook, User, ScrapbookStar, Scrap
+from src.sql.models import Scrapbook, User, ScrapbookStar, Scrap, Book
 
 class ScrapbookService:
     @staticmethod
@@ -64,10 +65,10 @@ class ScrapbookService:
             return False
 
     @staticmethod
-    def scrapbook_already_exists(db: Session,  user_id: int, book_id: int):
-        scrapbooks = ScrapbookService.get_scrapbooks(db, user_id)
+    def scrapbook_already_exists(db: Session,  user: User, book_id: int):
+        scrapbooks = db.query(Book).filter(Book.id == book_id).first().scrapbooks
         for scrapbook in scrapbooks:
-            if scrapbook.bookId == book_id:
+            if user in scrapbook.users:
                 return True
         return False
 
@@ -76,9 +77,7 @@ class ScrapbookService:
         try:
             book_uuid = str(uuid.uuid4())
             db_scrapbook = Scrapbook(uuid=book_uuid, bookId=book_id)
-            print(user.scrapbooks)
             user.scrapbooks.append(db_scrapbook)
-            print(user.scrapbooks)
             db.add(db_scrapbook)
             db.add(user)
             db.commit()

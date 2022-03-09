@@ -32,12 +32,12 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
     db_book = BookService.existed_book(db, book.authors, book.title)
     if not db_book:
         db_book = BookService.create_book(db, book)
-    if ScrapbookService.scrapbook_already_exists(db, user.id, db_book.id):
-        return JSONResponse(content={"error": "already scrapbook existed", "ok": False}, status_code=status.HTTP_200_OK)
+    if ScrapbookService.scrapbook_already_exists(db, user, db_book.id):
+        return JSONResponse(content={"ok": False, "error": "스크랩북이 이미 존재합니다."}, status_code=status.HTTP_200_OK)
     ok = ScrapbookService.create_scrapbook(db, user, db_book.id)
     if ok:
-        return {"ok": True}
-    return {"ok": False}
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"ok": True})
+    return JSONResponse(status_code=status.HTTP_200_OK,content={"ok": False, 'error': '스크랩북 생성에 실패하였습니다.'})
 
 @rt.get('/{scrapbook_id}', description='id 기반 스크랩북 읽기 API', response_model=ResScraps)
 def get_scraps_in_scrapbook(limit: int, offset: int, scrapbook_id: int, user: User = Depends(verify_token), db: Session = Depends(get_db)):
@@ -53,10 +53,10 @@ def get_scraps_in_scrapbook(limit: int, offset: int, scrapbook_id: int, user: Us
 def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
-    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id)
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id, user.id)
     if not db_scrapbook:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, "스크랩북이 존재하지 않습니다."))
-    if not user not in db_scrapbook.users:
+    if user not in db_scrapbook.users:
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content=error(40300))
     ScrapbookService.delete_scrapbook(db, db_scrapbook)
     return {"ok": True}
