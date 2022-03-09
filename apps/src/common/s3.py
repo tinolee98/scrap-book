@@ -5,7 +5,7 @@ import random
 
 from PIL import Image
 
-from config import Config, JsonConfig
+from src.config import Config, JsonConfig
 
 
 class S3FileUploader:
@@ -15,7 +15,7 @@ class S3FileUploader:
         self.bucket = Config.S3_BUCKET_NAME
         self.file = file
 
-    async def upload(self, dir: str = 'profile', is_checked: bool = True):
+    async def upload(self, dir: str = 'scrap', is_checked: bool = True):
         format_list = ['image/png', 'image/jpeg', 'image/gif']
         if is_checked:
             if self.file.content_type not in format_list:
@@ -32,8 +32,5 @@ class S3FileUploader:
         with open(filename, 'wb') as fp:
             fp.write(contents)
         self.s3.upload_file(filename, self.bucket, '{}/{}{}.{}'.format(dir, number, now, extension))
-        result = {
-            'image': 'https://{}.s3.ap-northeast-2.amazonaws.com/{}/{}{}.{}'.format(self.bucket, dir, number, now, extension),
-            'thumbnail': None,
-        }
+        result = 'https://{}.s3.ap-northeast-2.amazonaws.com/{}/{}{}.{}'.format(self.bucket, dir, number, now, extension)
         return result
