@@ -32,10 +32,10 @@ class Book(Base):
 class Scrapbook(Base):
     __tablename__ = "scrapbook"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
-    uuid = Column(String(20), unique=True, nullable=False)
+    uuid = Column(String(40), unique=True, nullable=False)
     users = relationship('User', secondary=scrapbook_users, backref=backref('scrapbooks', lazy='dynamic'))
     bookId = Column(Integer, ForeignKey('book.id'), nullable=False)
-    book = relationship('Book', lazy='select')
+    book = relationship('Book', lazy='select', backref=backref('scrapbooks', lazy='select'))
     createdAt = Column(DateTime, default=datetime.now(), nullable=False)
     updatedAt = Column(DateTime)
     # scraps
