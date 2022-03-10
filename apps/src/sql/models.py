@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text, DateTime, UniqueConstraint, column
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Text, DateTime, UniqueConstraint, column
 from sqlalchemy.orm import relationship, backref
 
 from .database import Base
@@ -56,6 +56,7 @@ class Scrap(Base):
 class ScrapbookStar(Base):
     __tablename__ = "scrapbook_star"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
-    userId = Column(Integer, ForeignKey('user.id'), nullable=False)
-    scrapbookId = Column(Integer, ForeignKey('scrapbook.id'), nullable=False)
+    userId = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    scrapbookId = Column(Integer, ForeignKey('scrapbook.id', ondelete='CASCADE'), nullable=False)
+    is_starred = Column(Boolean, default=False, nullable=False)
     __table_args__ = (UniqueConstraint('userId', 'scrapbookId', name='_user_scrapbook_uc'),)
