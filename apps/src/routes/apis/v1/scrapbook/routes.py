@@ -32,7 +32,7 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
     db_book = BookService.existed_book(db, book.authors, book.title)
     if not db_book:
         db_book = BookService.create_book(db, book)
-    if ScrapbookService.scrapbook_already_exists(db, user, db_book.id):
+    if ScrapbookService.scrapbook_already_exists(user, db_book.id):
         return JSONResponse(content={"ok": False, "error": "스크랩북이 이미 존재합니다."}, status_code=status.HTTP_200_OK)
     ok = ScrapbookService.create_scrapbook(db, user, db_book.id)
     if ok:
@@ -58,8 +58,9 @@ def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: Use
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, "스크랩북이 존재하지 않습니다."))
     if user not in db_scrapbook.users:
         return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content=error(40300))
-    ScrapbookService.delete_scrapbook(db, db_scrapbook)
-    return {"ok": True}
+    if ScrapbookService.go_out_scrapbook(db, user, db_scrapbook):
+        return {"ok": True}
+    return {"ok": False, "error": "스크랩북 삭제 실패"}
 
 @rt.post('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 생성 API', response_model=OkError)
 def create_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):

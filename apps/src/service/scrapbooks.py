@@ -65,10 +65,10 @@ class ScrapbookService:
             return False
 
     @staticmethod
-    def scrapbook_already_exists(db: Session,  user: User, book_id: int):
-        scrapbooks = db.query(Book).filter(Book.id == book_id).first().scrapbooks
+    def scrapbook_already_exists(user: User, book_id: int):
+        scrapbooks = user.scrapbooks.all()
         for scrapbook in scrapbooks:
-            if user in scrapbook.users:
+            if scrapbook.bookId == book_id:
                 return True
         return False
 
@@ -86,6 +86,22 @@ class ScrapbookService:
             return False
 
     @staticmethod
-    def delete_scrapbook(db: Session, scrapbook: Scrapbook):
-        db.delete(scrapbook)
+    def go_out_scrapbook(db: Session, user: User, scrapbook: Scrapbook):
+        scrapbook.users.remove(user)
+        if len(scrapbook.users) == 0:
+            if ScrapbookService.delete_scrapbook(db, scrapbook):
+                return True
+            else:
+                return False
         db.commit()
+        db.refresh(scrapbook)
+        return True
+
+    @staticmethod
+    def delete_scrapbook(db: Session, scrapbook: Scrapbook):
+        try:
+            db.delete(scrapbook)
+            db.commit()
+            return True
+        except:
+            return False
