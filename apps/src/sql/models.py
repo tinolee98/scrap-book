@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Text, DateTime, UniqueConstraint, column
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.sql import func
 
 from .database import Base
 from datetime import datetime
@@ -36,8 +37,8 @@ class Scrapbook(Base):
     users = relationship('User', secondary=scrapbook_users, backref=backref('scrapbooks', lazy='dynamic'))
     bookId = Column(Integer, ForeignKey('book.id'), nullable=False)
     book = relationship('Book', lazy='select', backref=backref('scrapbooks', lazy='select'))
-    createdAt = Column(DateTime, default=datetime.now(), nullable=False)
-    updatedAt = Column(DateTime)
+    createdAt = Column(DateTime(timezone=True), default=func.now())
+    updatedAt = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     # scraps
 
 class Scrap(Base):
@@ -50,8 +51,8 @@ class Scrap(Base):
     user = relationship('User', backref=backref('scraps', lazy='dynamic'))
     scrapbookId = Column(Integer, ForeignKey('scrapbook.id', ondelete="CASCADE"), nullable=False)
     scrapbook = relationship('Scrapbook', backref=backref('scraps', lazy='dynamic'))
-    createdAt = Column(DateTime, default=datetime.now(), nullable=False)
-    updatedAt = Column(DateTime)
+    createdAt = Column(DateTime(timezone=True), default=func.now())
+    updatedAt = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
 class ScrapbookStar(Base):
     __tablename__ = "scrapbook_star"
