@@ -59,5 +59,6 @@ class ScrapbookStar(Base):
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     userId = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     scrapbookId = Column(Integer, ForeignKey('scrapbook.id', ondelete='CASCADE'), nullable=False)
+    scrapbook = relationship('Scrapbook', backref=backref('stars', lazy='select'))
     is_starred = Column(Boolean, default=False, nullable=False)
     __table_args__ = (UniqueConstraint('userId', 'scrapbookId', name='_user_scrapbook_uc'),)

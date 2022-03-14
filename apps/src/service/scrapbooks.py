@@ -28,13 +28,29 @@ class ScrapbookService:
 
     @staticmethod
     def is_starred(db: Session, scrapbook_id: int, user_id: int):
-        if db.query(ScrapbookStar) \
+        star = db.query(ScrapbookStar) \
             .filter(ScrapbookStar.scrapbookId == scrapbook_id) \
             .filter(ScrapbookStar.userId == user_id) \
-            .first():
-            return True
-        return False
+            .first()
+        return star.is_starred
     
+    @staticmethod
+    def on_star(db: Session, scrapbook_id: int, user_id: int):
+        try:
+            db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == scrapbook_id).filter(ScrapbookStar.userId == user_id).update({ScrapbookStar.is_starred: True})
+            db.commit()
+            return True
+        except:
+            return False
+
+    @staticmethod
+    def off_star(db: Session, scrapbook_id: int, user_id: int):
+        try:
+            db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == scrapbook_id).filter(ScrapbookStar.userId == user_id).update({ScrapbookStar.is_starred: False})
+            db.commit()
+            return True
+        except:
+            return False
 
     @staticmethod
     def count_scraps(db: Session, scrapbook_id: int):
@@ -80,6 +96,18 @@ class ScrapbookService:
             user.scrapbooks.append(db_scrapbook)
             db.add(db_scrapbook)
             db.add(user)
+            db.commit()
+            return db_scrapbook
+        except:
+            return False
+
+    @staticmethod
+    def join_scrapbook(db: Session, user_id: int, scrapbook: Scrapbook):
+        try:
+            star = ScrapbookStar(userId=user_id, scrapbookId=scrapbook.id)
+            scrapbook.stars.append(star)
+            db.add(star)
+            db.add(scrapbook)
             db.commit()
             return True
         except:
