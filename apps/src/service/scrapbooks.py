@@ -27,6 +27,10 @@ class ScrapbookService:
         return scrapbook
 
     @staticmethod
+    def get_scrapbook_by_uuid(db: Session, uuid: str):
+        return db.query(Scrapbook).filter(Scrapbook.uuid == uuid).first()
+
+    @staticmethod
     def is_starred(db: Session, scrapbook_id: int, user_id: int):
         star = db.query(ScrapbookStar) \
             .filter(ScrapbookStar.scrapbookId == scrapbook_id) \

@@ -67,6 +67,20 @@ def delete_scrapbook(scrapbook_id: int, db: Session = Depends(get_db), user: Use
         return {"ok": True}
     return {"ok": False, "error": "스크랩북 삭제 실패"}
 
+@rt.post('/join', description='스크랩북 참가 API', response_model=OkError)
+def join_scrapbook(uuid: str = Body(...), db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
+    db_scrapbook = ScrapbookService.get_scrapbook_by_uuid(db, uuid)
+    if not db_scrapbook:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, "스크랩북이 존재하지 않습니다."))
+    if user in db_scrapbook.users:
+        return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': False, 'error': '이미 스크랩북에 들어가있습니다.'})
+    if ScrapbookService.join_scrapbook(db, user.id, db_scrapbook):
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': True})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': False, 'error': '스크랩북 참가에 실패하였습니다.'})
+    
+
 @rt.put('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 토글 API', response_model=OkError)
 def toggle_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
     if not user:
