@@ -27,8 +27,8 @@ class Book(Base):
     authors = Column(String(120), nullable=False)
     publisher = Column(String(120), nullable=False)
     contents = Column(Text, nullable=False)
-    thumbnail = Column(String(180), nullable=False)
-    url = Column(String(180), nullable=False)
+    thumbnail = Column(String(1000), nullable=False)
+    url = Column(String(1000), nullable=False)
 
 class Scrapbook(Base):
     __tablename__ = "scrapbook"
