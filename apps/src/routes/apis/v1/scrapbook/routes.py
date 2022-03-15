@@ -33,6 +33,8 @@ def create_scrapbook(book: BookIn = Body(...), db: Session = Depends(get_db), us
     # 어떤 것들을 비교해야 동일한 책이라는 것을 알 수 있을까? 모든 것을 비교하는 것은 비효율적인 것 같아서.
     if not db_book:
         db_book = BookService.create_book(db, book)
+    if not db_book:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, '책 정보를 불러오는데 실패했습니다.'))
     if ScrapbookService.scrapbook_already_exists(user, db_book.id):
         return JSONResponse(content={"ok": False, "error": "스크랩북이 이미 존재합니다."}, status_code=status.HTTP_200_OK)
     db_scrapbook = ScrapbookService.create_scrapbook(db, user, db_book.id)
@@ -114,3 +116,16 @@ def delete_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user
     if ok:
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': ok})
     return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': ok, 'error': '즐겨찾기 삭제를 실패했습니다.'})
+
+# 아직 scrapbook_star가 없는 모든 스크랩북에 is_starred = False를 설정해주기 위한 API
+@rt.post('/makeAllStar')
+def make_all_star_false(db: Session = Depends(get_db)):
+    scrapbooks = db.query(Scrapbook).all()
+    for scrapbook in scrapbooks:
+        users = scrapbook.users
+        for user in users:
+            star = db.query(ScrapbookStar).filter(ScrapbookStar.scrapbookId == scrapbook.id).filter(ScrapbookStar.userId == user.id).first()
+            if not star:
+                new_star = ScrapbookStar(scrapbookId=scrapbook.id, userId=user.id)
+                db.add(new_star)
+                db.commit()

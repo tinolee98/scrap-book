@@ -20,6 +20,7 @@ class BookService:
                 url=book.url)
             db.add(db_book)
             db.commit()
+            db.refresh(db_book)
             return db_book
         except:
             return None
