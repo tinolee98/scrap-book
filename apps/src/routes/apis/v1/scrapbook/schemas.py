@@ -14,3 +14,8 @@ class ResScrapbook(BaseModel):
 
 class ResScrapbooks(BaseModel):
     scrapbooks: List[ResScrapbook] = Field(...)
+
+class ResUUID(BaseModel):
+    uuid: str = Field(..., title='스크랩북 UUID', example='1234qwer-5678tyui')
+    class config:
+        orm_mode = True

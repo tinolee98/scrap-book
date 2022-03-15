@@ -10,7 +10,7 @@ from src.service.scrapbooks import ScrapbookService
 from src.sql.models import User, Scrapbook, ScrapbookStar
 from src.sql.database import get_db
 from src.routes.apis.v1.scrap.schemas import ResScraps
-from src.routes.apis.v1.scrapbook.schemas import ResScrapbooks, ResScrapbook
+from src.routes.apis.v1.scrapbook.schemas import ResScrapbooks, ResScrapbook, ResUUID
 from src.routes.apis.v1.book.schemas import BookIn
 
 rt = APIRouter(prefix='/apis/v1/scrapbook', tags=['/apis/v1/scrapbook'])
@@ -80,6 +80,14 @@ def join_scrapbook(uuid: str = Body(...), db: Session = Depends(get_db), user: U
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={'ok': True})
     return JSONResponse(status_code=status.HTTP_200_OK, content={'ok': False, 'error': '스크랩북 참가에 실패하였습니다.'})
     
+@rt.get('/{scrapbook_id}/uuid', description='스크랩북 uuid 읽기 API', response_model=ResUUID)
+def get_scrapbook_uuid(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
+    if not user:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=error(40100))
+    db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id, user.id)
+    if not db_scrapbook:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, "스크랩북이 존재하지 않습니다."))
+    return JSONResponse(status_code=status.HTTP_200_OK, content={'uuid': db_scrapbook.uuid})
 
 @rt.put('/{scrapbook_id}/star', description='스크랩북 즐겨찾기 토글 API', response_model=OkError)
 def toggle_scrapbook_star(scrapbook_id: int, db: Session = Depends(get_db), user: User = Depends(verify_token)):
