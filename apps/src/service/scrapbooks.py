@@ -36,6 +36,8 @@ class ScrapbookService:
             .filter(ScrapbookStar.scrapbookId == scrapbook_id) \
             .filter(ScrapbookStar.userId == user_id) \
             .first()
+        if not star:
+            return False
         return star.is_starred
     
     @staticmethod
@@ -106,10 +108,11 @@ class ScrapbookService:
             return False
 
     @staticmethod
-    def join_scrapbook(db: Session, user_id: int, scrapbook: Scrapbook):
+    def join_scrapbook(db: Session, user: User, scrapbook: Scrapbook):
         try:
-            star = ScrapbookStar(userId=user_id, scrapbookId=scrapbook.id)
+            star = ScrapbookStar(userId=user.id, scrapbookId=scrapbook.id)
             scrapbook.stars.append(star)
+            scrapbook.users.append(user)
             db.add(star)
             db.add(scrapbook)
             db.commit()
@@ -119,14 +122,14 @@ class ScrapbookService:
 
     @staticmethod
     def go_out_scrapbook(db: Session, user: User, scrapbook: Scrapbook):
+        if not ScrapbookService.delete_star(db, scrapbook.id, user.id):
+            return False
         scrapbook.users.remove(user)
         if len(scrapbook.users) == 0:
             if ScrapbookService.delete_scrapbook(db, scrapbook):
                 return True
-            else:
-                return False
+        db.add(scrapbook)
         db.commit()
-        db.refresh(scrapbook)
         return True
 
     @staticmethod
