@@ -51,7 +51,7 @@ def get_scraps_in_scrapbook(limit: int, offset: int, scrapbook_id: int, user: Us
     db_scrapbook = ScrapbookService.get_scrapbook_by_id(db, scrapbook_id, user.id)
     if not db_scrapbook:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=error(40400, '스크랩북이 존재하지 않습니다.'))
-    scraps = jsonable_encoder(db_scrapbook.scraps.ordey_by(asc(Scrap.page)).limit(limit).offset(offset).all())
+    scraps = jsonable_encoder(db_scrapbook.scraps.order_by(asc(Scrap.page)).limit(limit).offset(offset).all())
     return JSONResponse(status_code=status.HTTP_200_OK, content={'scraps': scraps})
 
 @rt.delete('/{scrapbook_id}', description='스크랩북 삭제 API', response_model=OkError)
